@@ -45,11 +45,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#if HAVE_UNISTD_H
 #include <unistd.h>
-#else
-#include <io.h>
-#endif
 
 #if (HAVE_DECL_S_IRGRP == 0)
 #include <sf_unistd.h>
