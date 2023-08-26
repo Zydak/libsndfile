@@ -14,7 +14,7 @@ function checkEndianness()
         }
     ]]
 
-    local checkEndiannessFile = "_check_endianness.cpp"  -- Use a relative path
+    local checkEndiannessFile = "_check_endianness.cpp"
     local checkEndiannessExe = "_check_endianness"
 
     -- Write the C++ code to a temporary file
@@ -41,6 +41,7 @@ end
 
 project "sndfile"
     kind "StaticLib"
+	architecture "x86_64"
     language "C"
     location "build"
     configurations { "Debug", "Release", "Dist" }
@@ -66,38 +67,42 @@ project "sndfile"
         "src/GSM610/*.c"
     }
     
-    -- Check the endianness
-    endianness = checkEndianness()
-
     projectName = "%{prj.name}"
     projectVersion = 1
-    if endianness == "BIG_ENDIAN" then
-        bigendian = 1
-        littleendian = 0
-        defines { "CPU_IS_LITTLE_ENDIAN=" .. littleendian .. "" }
-        defines { "CPU_IS_BIG_ENDIAN=" .. bigendian .. "" }
-    end
-    
-    if endianness == "LITTLE_ENDIAN" then
-        bigendian = 0
-        littleendian = 1
-        defines { "CPU_IS_LITTLE_ENDIAN=" .. littleendian .. "" }
-        defines { "CPU_IS_BIG_ENDIAN=" .. bigendian .. "" }
-    end
-    
     defines { "PACKAGE_NAME=\"" .. projectName .. "\"" }
     defines { "PACKAGE_VERSION=\"" .. projectVersion .. "\"" }
     defines { "CPU_CLIPS_POSITIVE=" .. 0 .. "" }
     defines { "CPU_CLIPS_NEGATIVE=" .. 0 .. "" }
-    defines { "USE_WINDOWS_API=" .. 0 .. "" }
+    defines { "HAVE_SYS_TYPES_H=" .. 1 .. "" }
+    defines { "M_PI=" .. 3.14159 .. "" }
 
     filter "platforms:Windows"
         system "Windows"
-        defines { "OS_IS_WIN32=\"" .. 1 .. "" }
+        defines { "USE_WINDOWS_API=" .. 1 .. "" }
+        defines { "OS_IS_WIN32=" .. 1 .. "" }
+        defines { "CPU_IS_LITTLE_ENDIAN=" .. 1 .. "" }
+        defines { "CPU_IS_BIG_ENDIAN=" .. 0 .. "" }
 
     filter "platforms:Linux"
         system "Linux"
+        defines { "HAVE_UNISTD_H" }
         defines { "OS_IS_WIN32=" .. 0 .. "" }
+        endianness = checkEndianness()
+        
+        defines { "USE_WINDOWS_API=" .. 0 .. "" }
+        if endianness == "BIG_ENDIAN" then
+            bigendian = 1
+            littleendian = 0
+            defines { "CPU_IS_LITTLE_ENDIAN=" .. littleendian .. "" }
+            defines { "CPU_IS_BIG_ENDIAN=" .. bigendian .. "" }
+        end
+    
+        if endianness == "LITTLE_ENDIAN" then
+            bigendian = 0
+            littleendian = 1
+            defines { "CPU_IS_LITTLE_ENDIAN=" .. littleendian .. "" }
+            defines { "CPU_IS_BIG_ENDIAN=" .. bigendian .. "" }
+        end
 
     filter "configurations:Debug"
 		runtime "Debug"
